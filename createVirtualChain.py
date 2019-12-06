@@ -2,7 +2,6 @@ from __future__ import print_function
 from ortools.linear_solver import pywraplp
 
 
-
 def LinearProgrammingExample():
     """Linear programming sample."""
     # Instantiate a Glop solver, naming it LinearExample.
@@ -47,4 +46,4 @@ def LinearProgrammingExample():
     print('Optimal objective value =', opt_solution)
 
 
-LinearProgrammingExample()
+#LinearProgrammingExample()
