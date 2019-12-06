@@ -1,4 +1,4 @@
-class edgeDevive:
+class edgeDevice:
     def __init__(self, name, cpu):
         self.name = name;
         self.cpu = cpu;
