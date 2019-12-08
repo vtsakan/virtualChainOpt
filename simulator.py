@@ -6,6 +6,7 @@ from virtualChain import virtualChain
 from virtualFunction import virtualFunction
 
 import random
+import numpy as np
 
 if __name__ == "__main__":
 
@@ -19,6 +20,16 @@ if __name__ == "__main__":
     D07 = edgeDevice("D07", 2.2*10**4);
     D08 = edgeDevice("D08", 1.2*10**6);
 
+    edgeDevicelist = [];
+    edgeDevicelist.append(D01);
+    edgeDevicelist.append(D02);
+    edgeDevicelist.append(D03);
+    edgeDevicelist.append(D04);
+    edgeDevicelist.append(D05);
+    edgeDevicelist.append(D06);
+    edgeDevicelist.append(D07);
+    edgeDevicelist.append(D08);
+
     #Create Virtal Functions
     VF01 = virtualFunction("VF01", 3*10**4);
     VF02 = virtualFunction("VF02", 2*10**5);
@@ -26,7 +37,7 @@ if __name__ == "__main__":
     VF04 = virtualFunction("VF04", 2*10**3);
 
     #create virtualChain
-    service01 = virtualChain("service01", 1/10);
+    service01 = virtualChain("service01", 10);
     service01.addVF(VF01);
     service01.addVF(VF02);
     service01.addVF(VF03);
@@ -34,25 +45,37 @@ if __name__ == "__main__":
 
     service01.print();
 
-    print(D01.processingTime(VF01.getLoad()));
+    print(D01.getProcessingTime(VF01.getLoad()));
 
+    num_workers = len(edgeDevicelist);
+    num_tasks = len(service01.getGVF());
 
     solver = pywraplp.Solver('SolveAssignmentProblemMIP',
                            pywraplp.Solver.CBC_MIXED_INTEGER_PROGRAMMING)
 
-    cost = [[90, 76, 75, 70],
-          [35, 85, 55, 65],
-          [125, 95, 90, 105],
-          [45, 110, 95, 115],
-          [60, 105, 80, 75],
-          [45, 65, 110, 95]]
+    #create cost matrix
+    cost = np.zeros([num_workers, num_tasks]);
+    for i in range(num_workers):
+        for j in range(num_tasks):
+            cost[i][j] = edgeDevicelist[i].getCost(service01.getVF(j).getLoad());
+    #print(cost);
 
-    team1 = [0, 2, 4]
-    team2 = [1, 3, 5]
-    team_max = 2
 
-    num_workers = len(cost)
-    num_tasks = len(cost[1])
+    #create time processing matrix
+    timeProc = np.zeros([num_workers, num_tasks]);
+    for i in range(num_workers):
+        for j in range(num_tasks):
+            timeProc[i][j] = edgeDevicelist[i].getProcessingTime(service01.getVF(j).getLoad());
+    print(timeProc);
+
+
+    team1 = [0, 1, 2, 3, 5, 6, 7];
+    #print(team1);
+    #team2 = [1, 3, 5]
+    #team_max = 2
+
+    #num_workers = len(cost)
+    #num_tasks = len(cost[1])
     x = {}
 
     for i in range(num_workers):
@@ -75,21 +98,31 @@ if __name__ == "__main__":
     for j in range(num_tasks):
         solver.Add(solver.Sum([x[i, j] for i in range(num_workers)]) == 1)
 
-    # Each team takes on two tasks.
 
-    solver.Add(solver.Sum(cost[i][j] *[x[i, j] for i in team1 for j in range(num_tasks)]) <= 1000)########################
-    solver.Add(solver.Sum([x[i, j] for i in     team2 for j in range(num_tasks)]) <= team_max)
+    #support QoS
+    solver.Add( solver.Sum( [ timeProc[i][j] * x[i, j] for i in team1 for j in range(num_tasks) ] ) <= service01.getQoS() )########################
+    #solver.Add(solver.Sum([x[i, j] for i in team2 for j in range(num_tasks)]) <= team_max)
     sol = solver.Solve()
 
-    print('Total cost = ', solver.Objective().Value())
+    print('Total cost = ', solver.Objective().Value());
     print()
     for i in range(num_workers):
         for j in range(num_tasks):
             if x[i, j].solution_value() > 0:
-                print('Worker %d assigned to task %d.  Cost = %d' % (
+                print('Edge Device %d assigned to VF %d:  Cost = %f' % (
                 i,
                 j,
                 cost[i][j]))
+
+
+    tpsum = 0;
+    for i in range(num_workers):
+        for j in range(num_tasks):
+            if x[i, j].solution_value() > 0:
+                tpsum = tpsum + timeProc[i][j];
+                print(i, ' ', j, ' ', tpsum)
+    print('Total processing time = ', tpsum);
+    print('QoS                   = ', service01.getQoS());
 
     print()
     print("Time = ", solver.WallTime(), " milliseconds")

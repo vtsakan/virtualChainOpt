@@ -3,8 +3,11 @@ class edgeDevice:
         self.name = name;
         self.cpu = cpu;
 
-    def processingTime(self, load):
+    def getProcessingTime(self, load):
         return load/self.cpu;
 
-    def cost(self, load):
+    def getCost(self, load):
         return load**2 / self.cpu;
+
+    def getName(self):
+        return self.name;
