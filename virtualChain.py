@@ -9,9 +9,9 @@ class virtualChain:
 
     def print(self):
         for vf in self.vflist:
-            print(vf.getName());
+            print(vf.getName(), '->', vf.getLoad());
 
-    def getGVF(self):
+    def getVFCHAIN(self):
         return self.vflist;
 
     def getVF(self, index):
@@ -19,3 +19,6 @@ class virtualChain:
 
     def getQoS(self):
         return 1/self.fps;
+
+    def deleteVF(self, vf):
+        self.vflist.remove(vf);

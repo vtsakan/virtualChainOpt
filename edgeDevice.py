@@ -11,3 +11,6 @@ class edgeDevice:
 
     def getName(self):
         return self.name;
+
+    def getCPU(self):
+        return self.cpu;
