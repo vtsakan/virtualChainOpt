@@ -15,18 +15,19 @@ if __name__ == "__main__":
     #Create edge network
     D00 = edgeDevice("D00", 1.2*10**7);
     D01 = edgeDevice("D01", 1.2*10**6);
-    D02 = edgeDevice("D02", 6.2*10**5);
+    D02 = edgeDevice("D02", 9.7*10**5);
     D03 = edgeDevice("D03", 9.5*10**5);
-    D04 = edgeDevice("D04", 9.9*10**5);
-    D05 = edgeDevice("D05", 7.2*10**5);
+    D04 = edgeDevice("D04", 9.9*10**6);
+    D05 = edgeDevice("D05", 9.7*10**5);
     D06 = edgeDevice("D06", 9.7*10**5);
-    D07 = edgeDevice("D07", 1.2*10**6);
-    D08 = edgeDevice("D08", 6.2*10**5);
-    D09 = edgeDevice("D09", 6.2*10**5);
-    D10 = edgeDevice("D10", 6.2*10**5);
-    D11 = edgeDevice("D11", 6.9*10**5);
-    D12 = edgeDevice("D12", 6.2*10**5);
-    D13 = edgeDevice("D13", 6.2*10**5);
+    D07 = edgeDevice("D07", 9.7*10**5);
+    D08 = edgeDevice("D08", 9.7*10**5);
+    D09 = edgeDevice("D09", 9.7*10**5);
+    D10 = edgeDevice("D10", 9.7*10**5);
+    D11 = edgeDevice("D11", 9.7*10**5);
+    D12 = edgeDevice("D12", 9.7*10**5);
+    D13 = edgeDevice("D13", 9.7*10**5);
+    D14 = edgeDevice("D14", 9.7*10**5);
 
     edgeDevicelist = [];
     edgeDevicelist.append(D00);
@@ -43,15 +44,16 @@ if __name__ == "__main__":
     edgeDevicelist.append(D11);
     edgeDevicelist.append(D12);
     edgeDevicelist.append(D13);
+    edgeDevicelist.append(D14);
 
     #Create Virtal Functions
-    VF01 = virtualFunction("VF01", 3*10**4);
-    VF02 = virtualFunction("VF02", 7*10**4);
-    VF03 = virtualFunction("VF03", 6*10**4);
-    VF04 = virtualFunction("VF04", 5*10**3);
+    VF01 = virtualFunction("VF01", 5*10**4, False);
+    VF02 = virtualFunction("VF02", 4*10**4, False);
+    VF03 = virtualFunction("VF03", 5*10**4, False);
+    VF04 = virtualFunction("VF04", 5*10**3, False);
 
     #create virtualChain
-    service01 = virtualChain("service01", 12);
+    service01 = virtualChain("service01", 25);
     service01.addVF(VF01);
     service01.addVF(VF02);
     service01.addVF(VF03);
@@ -77,14 +79,17 @@ if __name__ == "__main__":
         timeProc = np.zeros([num_workers, num_tasks]);
         for i in range(num_workers):
             for j in range(num_tasks):
-                timeProc[i][j] = edgeDevicelist[i].getProcessingTime(service01.getVF(j).getLoad());
-        #print(timeProc);
+                if (not service01.getVF(j).getReplica()):
+                    timeProc[i][j] = edgeDevicelist[i].getProcessingTime(service01.getVF(j).getLoad());
+                else:
+                    timeProc[i][j] = 0;
+        print(timeProc);
 
         m = GEKKO() # Initialize gekko
         m.options.SOLVER = 1  # APOPT is an MINLP solver
 
         # optional solver settings with APOPT
-        m.solver_options = ['minlp_maximum_iterations 500', \
+        m.solver_options = ['minlp_maximum_iterations 5000', \
                             # minlp iterations with integer solution
                             'minlp_max_iter_with_int_sol 10', \
                             # treat minlp as nlp
@@ -147,6 +152,7 @@ if __name__ == "__main__":
             print('QoS                   = ', service01.getQoS());
 
             break;
+
         except:
             print('No feasible solution.... retrying')
             #Approach #1 - worstCase
@@ -156,7 +162,7 @@ if __name__ == "__main__":
             # optional solver settings with APOPT
             s.solver_options = ['minlp_maximum_iterations 500', \
                                 # minlp iterations with integer solution
-                                'minlp_max_iter_with_int_sol 10', \
+                                'minlp_max_iter_with_int_sol 100', \
                                 # treat minlp as nlp
                                 'minlp_as_nlp 0', \
                                 # nlp sub-problem max iterations
@@ -207,7 +213,10 @@ if __name__ == "__main__":
 
                     for r in range(int(instances[j])):
                         name = VFrepl.getName() + '_replica_' + str(r);
-                        VFtmp = virtualFunction(name, VFrepl.getLoad()/instances[j]);
+                        if (r == 0):
+                            VFtmp = virtualFunction(name, VFrepl.getLoad()/instances[j], False);
+                        else:
+                            VFtmp = virtualFunction(name, VFrepl.getLoad()/instances[j], True);
                         service01.addVF(VFtmp);
 
             for vf in removeVFs:
