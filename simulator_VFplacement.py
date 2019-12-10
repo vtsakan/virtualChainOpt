@@ -25,23 +25,23 @@ if __name__ == "__main__":
     D00 = edgeDevice("D00", 1.2*10**7);
     D01 = edgeDevice("D01", 1.2*10**6);
     D02 = edgeDevice("D02", 9.7*10**5);
-    D03 = edgeDevice("D03", 9.5*10**5);
-    D04 = edgeDevice("D04", 9.9*10**6);
-    D05 = edgeDevice("D05", 9.7*10**5);
+    D03 = edgeDevice("D03", 6.5*10**4);
+    D04 = edgeDevice("D04", 4.9*10**6);
+    D05 = edgeDevice("D05", 3.7*10**5);
     D06 = edgeDevice("D06", 9.7*10**5);
-    D07 = edgeDevice("D07", 9.7*10**6);
+    D07 = edgeDevice("D07", 1.7*10**6);
     D08 = edgeDevice("D08", 6.7*10**6);
     D09 = edgeDevice("D09", 9.7*10**7);
     D10 = edgeDevice("D10", 2.7*10**6);
     D11 = edgeDevice("D11", 3.7*10**6);
-    D12 = edgeDevice("D12", 3.7*10**7);
+    D12 = edgeDevice("D12", 1.7*10**7);
     D13 = edgeDevice("D13", 9.7*10**5);
-    D14 = edgeDevice("D14", 9.7*10**5);
+    D14 = edgeDevice("D14", 6.7*10**5);
     D15 = edgeDevice("D15", 9.7*10**6);
-    D16 = edgeDevice("D16", 3.7*10**7);
-    D17 = edgeDevice("D17", 9.7*10**7);
+    D16 = edgeDevice("D16", 3.7*10**3);
+    D17 = edgeDevice("D17", 9.7*10**5);
     D18 = edgeDevice("D18", 7.7*10**7);
-    D19 = edgeDevice("D19", 9.7*10**8);
+    D19 = edgeDevice("D19", 9.7*10**6);
 
     edgeDevicelist = [];
     edgeDevicelist.append(D00);
@@ -69,10 +69,10 @@ if __name__ == "__main__":
     VF01 = virtualFunction("VF01", 5*10**4, False);
     VF02 = virtualFunction("VF02", 4*10**5, False);
     VF03 = virtualFunction("VF03", 5*10**6, False);
-    VF04 = virtualFunction("VF04", 5*10**6, False);
+    VF04 = virtualFunction("VF04", 3*10**6, False);
 
     #create virtualChain
-    service01 = virtualChain("service01", 25);
+    service01 = virtualChain("service01", 10);
     service01.addVF(VF01);
     service01.addVF(VF02);
     service01.addVF(VF03);
@@ -103,7 +103,7 @@ if __name__ == "__main__":
                     timeProc[i][j] = edgeDevicelist[i].getProcessingTime(service01.getVF(j).getLoad());
                 else:
                     timeProc[i][j] = 0;
-        print(timeProc);
+        #print(timeProc);
 
         m = 0;
 
@@ -156,8 +156,8 @@ if __name__ == "__main__":
                 for j in range(num_tasks):
                     #print(str(x[i, j].value))
                     if int(str(x[i, j].value)[1]) == 1:
-                        print(' %d assigned to Edge Device %s:  Cost = %f' % (
-                        j,
+                        print(' %s assigned to Edge Device %s:  Cost = %f' % (
+                        service01.getVF(j).getName(),
                         edgeDevicelist[i].getName(),
                         cost[i][j]))
             print('Objective: ' + str(m.options.objfcnval))
